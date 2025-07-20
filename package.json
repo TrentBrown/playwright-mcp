@@ -1,6 +1,6 @@
 {
   "name": "playwright-mcp-multiple",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Playwright Tools for MCP with color injection support",
   "type": "module",
   "repository": {

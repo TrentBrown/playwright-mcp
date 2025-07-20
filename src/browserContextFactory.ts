@@ -63,8 +63,10 @@ class BaseContextFactory implements BrowserContextFactory {
       browser.on('disconnected', () => {
         this._browserPromise = undefined;
       });
-    }).catch(() => {
-      this._browserPromise = undefined;
+    }).catch(error => {
+      testDebug(`Browser launch failed (${this.name}):`, error.message);
+      // Don't automatically reset - this prevents endless retry loops
+      // The error will propagate to the caller
     });
     return this._browserPromise;
   }
@@ -102,7 +104,8 @@ class IsolatedContextFactory extends BaseContextFactory {
   }
 
   protected override async _doObtainBrowser(): Promise<playwright.Browser> {
-    await injectCdpPort(this.browserConfig);
+    // Don't inject CDP port for isolated mode - it's not needed and can cause conflicts
+    // await injectCdpPort(this.browserConfig);
     const browserType = playwright[this.browserConfig.browserName];
     return browserType.launch({
       ...this.browserConfig.launchOptions,

@@ -63,11 +63,14 @@ export function generateColorInjectionScript(color: string, agentName: string): 
     document.title = \`\${emoji} \${originalTitle}\`;
 
     // Monitor title changes
-    new MutationObserver(() => {
-        if (!document.title.startsWith(emoji)) {
-            document.title = \`\${emoji} \${document.title}\`;
-        }
-    }).observe(document.querySelector('title'), { childList: true });
+    const titleElement = document.querySelector('title');
+    if (titleElement) {
+        new MutationObserver(() => {
+            if (!document.title.startsWith(emoji)) {
+                document.title = \`\${emoji} \${document.title}\`;
+            }
+        }).observe(titleElement, { childList: true });
+    }
 })();
 `;
 }
@@ -113,14 +116,12 @@ export function getDefaultAgentName(color: string): string {
   };
 
   // Check if it's a known hex color
-  if (colorNames[color]) {
+  if (colorNames[color])
     return `${colorNames[color]}-AGENT`;
-  }
 
   // Check if it's a named color
-  if (colorName.match(/^[a-z]+$/)) {
+  if (colorName.match(/^[a-z]+$/))
     return `${colorName.toUpperCase()}-AGENT`;
-  }
 
   // For other formats (rgb, hsl, etc.), use generic name
   return 'COLOR-AGENT';

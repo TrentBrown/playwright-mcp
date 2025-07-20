@@ -324,8 +324,14 @@ ${code.join('\n')}
   private _ensureBrowserContext() {
     if (!this._browserContextPromise) {
       this._browserContextPromise = this._setupBrowserContext();
-      this._browserContextPromise.catch(() => {
-        this._browserContextPromise = undefined;
+      // Don't reset on error - let the error propagate
+      // This prevents endless retry loops
+      this._browserContextPromise.catch(error => {
+        // Log error for debugging, but don't use console in production
+        // console.error('Browser context setup failed:', error.message);
+        // Only reset if it's a specific recoverable error
+        if (error.message?.includes('Browser closed') || error.message?.includes('disconnected'))
+          this._browserContextPromise = undefined;
       });
     }
     return this._browserContextPromise;
@@ -336,7 +342,7 @@ ${code.join('\n')}
     const result = await this._browserContextFactory.createContext();
     const { browserContext } = result;
     await this._setupRequestInterception(browserContext);
-    
+
     // Inject color script if color option is provided
     if (this.config.color) {
       const normalizedColor = normalizeColor(this.config.color);
@@ -344,7 +350,7 @@ ${code.join('\n')}
       const colorScript = generateColorInjectionScript(normalizedColor, agentName);
       await browserContext.addInitScript(colorScript);
     }
-    
+
     for (const page of browserContext.pages())
       this._onPageCreated(page);
     browserContext.on('page', page => this._onPageCreated(page));
